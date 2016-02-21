@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/url"
 	"os"
@@ -11,14 +12,6 @@ import (
 
 	"github.com/postgres-ci/hooks/git"
 )
-
-type Push struct {
-	Repository string       `json:"repository"`
-	Ref        string       `json:"ref"`
-	Before     string       `json:"before"`
-	After      string       `json:"after"`
-	Commits    []git.Commit `json:"commits"`
-}
 
 func main() {
 
@@ -35,18 +28,17 @@ func main() {
 
 		var (
 			pwd  = os.Getenv("PWD")
-			push = Push{
-				Repository: os.Getenv("REPOSITORY"),
-				Ref:        fields[2],
-				Before:     fields[0],
-				After:      fields[1],
+			push = git.Push{
+				Ref: fields[2],
+				Old: fields[0],
+				New: fields[1],
 			}
-			revisions = []string{push.After}
+			revisions = []string{push.New}
 		)
 
-		if push.Before != git.Z40 {
+		if push.Old != git.Z40 {
 
-			if revList, err := git.GitRevList(pwd, push.Before, push.After); err == nil {
+			if revList, err := git.RevList(pwd, push.Old, push.New); err == nil {
 
 				revisions = revList
 			}
@@ -64,9 +56,15 @@ func main() {
 	}
 }
 
-func send(push Push) error {
+var client http.Client
 
-	data, _ := json.Marshal(push)
+func send(push git.Push) error {
+
+	//data, _ := json.Marshal(push)
+
+	data, _ := json.MarshalIndent(push, "  ", "  ")
+
+	fmt.Println(string(data))
 
 	_url := url.URL{
 		Scheme: "http",
@@ -74,15 +72,15 @@ func send(push Push) error {
 		Path:   "/web-hooks/native/",
 	}
 
-	_, err := http.Post(
-		_url.String(),
-		"application/x-www-form-urlencoded",
-		bytes.NewReader(data),
-	)
+	req, _ := http.NewRequest("POST", _url.String(), bytes.NewReader(data))
 
-	if err != nil {
+	req.Header.Set("X-Event", "push")
+	req.Header.Set("X-Repository", os.Getenv("REPOSITORY"))
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
-		return err
+	if _, err := client.Do(req); err != nil {
+
+		return nil
 	}
 
 	return nil
