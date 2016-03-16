@@ -60,25 +60,23 @@ var client http.Client
 
 func send(push git.Push) error {
 
-	//data, _ := json.Marshal(push)
-
-	data, _ := json.MarshalIndent(push, "  ", "  ")
-
-	fmt.Println(string(data))
+	data, _ := json.Marshal(push)
 
 	_url := url.URL{
-		Scheme: "http",
-		Host:   os.Getenv("API_HOST"),
+		Scheme: os.Getenv("SCHEME"),
+		Host:   os.Getenv("HOST"),
 		Path:   "/web-hooks/native/",
 	}
 
 	req, _ := http.NewRequest("POST", _url.String(), bytes.NewReader(data))
 
 	req.Header.Set("X-Event", "push")
-	req.Header.Set("X-Repository", os.Getenv("REPOSITORY"))
-	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	req.Header.Set("X-Token", os.Getenv("TOKEN"))
+	req.Header.Set("Content-Type", "application/json")
 
 	if _, err := client.Do(req); err != nil {
+
+		fmt.Printf("Error when sending a commit to Postgres-CI (err: %v)\n", err)
 
 		return nil
 	}
