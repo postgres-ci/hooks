@@ -1,16 +1,17 @@
 package main
 
 import (
+	"github.com/postgres-ci/hooks/git"
+
 	"bufio"
 	"bytes"
+	"crypto/tls"
 	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/url"
 	"os"
 	"strings"
-
-	"github.com/postgres-ci/hooks/git"
 )
 
 func main() {
@@ -56,7 +57,13 @@ func main() {
 	}
 }
 
-var client http.Client
+var client = http.Client{
+	Transport: &http.Transport{
+		TLSClientConfig: &tls.Config{
+			InsecureSkipVerify: true,
+		},
+	},
+}
 
 func send(push git.Push) error {
 

@@ -5,4 +5,4 @@ export SCHEME=http
 export HOST=127.0.0.1:8080
 export TOKEN=5e28989ba11491
 
-./hooks/bin/sender
+./hooks/bin/post-receive

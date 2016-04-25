@@ -1,14 +1,15 @@
 package main
 
 import (
+	"github.com/postgres-ci/hooks/git"
+
 	"bytes"
+	"crypto/tls"
 	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/url"
 	"os"
-
-	"github.com/postgres-ci/hooks/git"
 )
 
 type Commit struct {
@@ -34,7 +35,13 @@ func main() {
 	}
 }
 
-var client http.Client
+var client = http.Client{
+	Transport: &http.Transport{
+		TLSClientConfig: &tls.Config{
+			InsecureSkipVerify: true,
+		},
+	},
+}
 
 func send(commit Commit) error {
 
