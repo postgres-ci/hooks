@@ -65,7 +65,7 @@ func send(push git.Push) error {
 	_url := url.URL{
 		Scheme: os.Getenv("SCHEME"),
 		Host:   os.Getenv("HOST"),
-		Path:   "/web-hooks/native/",
+		Path:   "/webhooks/native/",
 	}
 
 	req, _ := http.NewRequest("POST", _url.String(), bytes.NewReader(data))
