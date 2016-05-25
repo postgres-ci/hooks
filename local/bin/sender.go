@@ -1,14 +1,15 @@
 package main
 
 import (
+	"github.com/postgres-ci/hooks/git"
+
 	"bytes"
 	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/url"
 	"os"
-
-	"github.com/postgres-ci/hooks/git"
+	"time"
 )
 
 type Commit struct {
@@ -34,7 +35,9 @@ func main() {
 	}
 }
 
-var client http.Client
+var client = http.Client{
+	Timeout: time.Second * 2,
+}
 
 func send(commit Commit) error {
 
@@ -58,6 +61,8 @@ func send(commit Commit) error {
 
 		return nil
 	}
+
+	fmt.Printf("\nCommit %s was sent to Postgres-CI server (%s://%s)\n\n", commit.ID, _url.Scheme, _url.Host)
 
 	return nil
 }

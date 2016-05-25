@@ -1,6 +1,8 @@
 package main
 
 import (
+	"github.com/postgres-ci/hooks/git"
+
 	"bufio"
 	"bytes"
 	"encoding/json"
@@ -9,8 +11,7 @@ import (
 	"net/url"
 	"os"
 	"strings"
-
-	"github.com/postgres-ci/hooks/git"
+	"time"
 )
 
 func main() {
@@ -56,7 +57,9 @@ func main() {
 	}
 }
 
-var client http.Client
+var client = http.Client{
+	Timeout: time.Second * 2,
+}
 
 func send(push git.Push) error {
 
@@ -80,6 +83,15 @@ func send(push git.Push) error {
 
 		return nil
 	}
+
+	fmt.Println("\nCommits:")
+
+	for _, commit := range push.Commits {
+
+		fmt.Printf("  %s %s %s\n", push.Ref, commit.ID, commit.Author.Name)
+	}
+
+	fmt.Printf("\nwas sent to Postgres-CI server (%s://%s)\n\n", _url.Scheme, _url.Host)
 
 	return nil
 }
