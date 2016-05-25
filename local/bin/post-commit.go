@@ -4,6 +4,7 @@ import (
 	"github.com/postgres-ci/hooks/git"
 
 	"bytes"
+	"crypto/tls"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -36,7 +37,13 @@ func main() {
 }
 
 var client = http.Client{
+
 	Timeout: time.Second * 2,
+	Transport: &http.Transport{
+		TLSClientConfig: &tls.Config{
+			InsecureSkipVerify: true,
+		},
+	},
 }
 
 func send(commit Commit) error {
