@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"time"
 )
 
 type Commit struct {
@@ -28,14 +29,21 @@ func main() {
 
 	if commit, err := git.GetLastCommit(os.Getenv("PWD")); err == nil {
 
-		send(Commit{
+		err := send(Commit{
 			Ref:    ref,
 			Commit: commit,
 		})
+
+		if err != nil {
+
+			fmt.Println(err)
+		}
 	}
 }
 
 var client = http.Client{
+
+	Timeout: time.Second * 2,
 	Transport: &http.Transport{
 		TLSClientConfig: &tls.Config{
 			InsecureSkipVerify: true,
@@ -63,15 +71,15 @@ func send(commit Commit) error {
 
 	if err != nil {
 
-		fmt.Printf("Error when sending a commit to Postgres-CI: %v\n", err)
-
-		return nil
+		return fmt.Errorf("Error when sending a commit to Postgres-CI: %v", err)
 	}
 
 	if response.StatusCode != http.StatusOK {
 
-		fmt.Printf("Error when sending a commit to Postgres-CI: %v\n", response.Status)
+		return fmt.Errorf("Error when sending a commit to Postgres-CI: %v", response.Status)
 	}
+
+	fmt.Printf("\nCommit %s was sent to Postgres-CI server (%s://%s)\n\n", commit.ID, _url.Scheme, _url.Host)
 
 	return nil
 }

@@ -12,6 +12,7 @@ import (
 	"net/url"
 	"os"
 	"strings"
+	"time"
 )
 
 func main() {
@@ -53,11 +54,15 @@ func main() {
 			}
 		}
 
-		send(push)
+		if err := send(push); err != nil {
+
+			fmt.Println(err)
+		}
 	}
 }
 
 var client = http.Client{
+	Timeout: time.Second * 2,
 	Transport: &http.Transport{
 		TLSClientConfig: &tls.Config{
 			InsecureSkipVerify: true,
@@ -85,15 +90,22 @@ func send(push git.Push) error {
 
 	if err != nil {
 
-		fmt.Printf("Error when sending a push to Postgres-CI: %v\n", err)
-
-		return nil
+		return fmt.Errorf("Error when sending a push to Postgres-CI: %v", err)
 	}
 
 	if response.StatusCode != http.StatusOK {
 
-		fmt.Printf("Error when sending a push to Postgres-CI: %s\n", response.Status)
+		return fmt.Errorf("Error when sending a push to Postgres-CI: %s", response.Status)
 	}
+
+	fmt.Println("\nCommits:")
+
+	for _, commit := range push.Commits {
+
+		fmt.Printf("  %s %s %s\n", push.Ref, commit.ID, commit.Author.Name)
+	}
+
+	fmt.Printf("\nwas sent to Postgres-CI server (%s://%s)\n\n", _url.Scheme, _url.Host)
 
 	return nil
 }
