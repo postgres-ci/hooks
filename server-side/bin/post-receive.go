@@ -81,11 +81,18 @@ func send(push git.Push) error {
 	req.Header.Set("X-Token", os.Getenv("TOKEN"))
 	req.Header.Set("Content-Type", "application/json")
 
-	if _, err := client.Do(req); err != nil {
+	response, err := client.Do(req)
 
-		fmt.Printf("Error when sending a commit to Postgres-CI (err: %v)\n", err)
+	if err != nil {
+
+		fmt.Printf("Error when sending a push to Postgres-CI: %v\n", err)
 
 		return nil
+	}
+
+	if response.StatusCode != http.StatusOK {
+
+		fmt.Printf("Error when sending a push to Postgres-CI: %s\n", response.Status)
 	}
 
 	return nil
