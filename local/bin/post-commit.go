@@ -76,7 +76,21 @@ func send(commit Commit) error {
 
 	if response.StatusCode != http.StatusOK {
 
-		return fmt.Errorf("Error when sending a commit to Postgres-CI: %v", response.Status)
+		if response.StatusCode == http.StatusBadRequest {
+
+			var message struct {
+				Success bool   `json:"success"`
+				Code    int    `json:"code"`
+				Error   string `json:"error"`
+			}
+
+			if err := json.NewDecoder(response.Body).Decode(&message); err == nil {
+
+				return fmt.Errorf("Error when sending a commit to Postgres-CI: %s", message.Error)
+			}
+		}
+
+		return fmt.Errorf("Error when sending a commit to Postgres-CI: %s", response.Status)
 	}
 
 	fmt.Printf("\nCommit %s was sent to Postgres-CI server (%s://%s)\n\n", commit.ID, _url.Scheme, _url.Host)

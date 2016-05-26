@@ -95,6 +95,20 @@ func send(push git.Push) error {
 
 	if response.StatusCode != http.StatusOK {
 
+		if response.StatusCode == http.StatusBadRequest {
+
+			var message struct {
+				Success bool   `json:"success"`
+				Code    int    `json:"code"`
+				Error   string `json:"error"`
+			}
+
+			if err := json.NewDecoder(response.Body).Decode(&message); err == nil {
+
+				return fmt.Errorf("Error when sending a push to Postgres-CI: %s", message.Error)
+			}
+		}
+
 		return fmt.Errorf("Error when sending a push to Postgres-CI: %s", response.Status)
 	}
 
