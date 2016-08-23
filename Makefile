@@ -1,5 +1,9 @@
 go_version = go1.7.linux-amd64
 
+ifeq ($(shell uname), Darwin)
+	go_version = go1.7.darwin-amd64
+endif
+
 go:
 
 	@echo "\033[1mInstall Go compiler\033[0m"
@@ -8,7 +12,7 @@ go:
 
 	@if [ ! -d env/go ]; then \
 		cd env && \
-		wget https://storage.googleapis.com/golang/$(go_version).tar.gz && \
+		curl -O https://storage.googleapis.com/golang/$(go_version).tar.gz && \
 		tar -xf ./$(go_version).tar.gz && \
 		rm ./$(go_version).tar.gz ; \
 	fi
@@ -29,6 +33,8 @@ build:
 	env/go/bin/go build -ldflags='-s -w' -o bin/postgres-ci-git-hook postgres-ci-git-hook.go
 
 	@echo "\033[1mdone!\033[0m"
+
+	@file bin/postgres-ci-git-hook
 
 install: build
 
