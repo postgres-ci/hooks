@@ -1,4 +1,4 @@
-go_version = go1.6.2.linux-amd64
+go_version = go1.7.linux-amd64
 
 go:
 
@@ -10,47 +10,28 @@ go:
 		cd env && \
 		wget https://storage.googleapis.com/golang/$(go_version).tar.gz && \
 		tar -xf ./$(go_version).tar.gz && \
-		mkdir gopath && \
 		rm ./$(go_version).tar.gz ; \
 	fi
 
-	@GOROOT=$(shell pwd)/env/go \
-	GOPATH=$(shell pwd)/env/gopath \
-	env/go/bin/go get -u github.com/FiloSottile/gvt
-
-	@GOROOT=$(shell pwd)/env/go \
-	GOPATH=$(shell pwd)/env/gopath \
-	env/go/bin/go get -u github.com/kshvakov/build-html
-
 	@echo "\033[1mGo compiler installed!\033[0m"
 
-build-hooks:
+build:
 
-	@echo "\033[1mBuild hooks\033[0m"
+	@echo "\033[1mBuild hook\033[0m"
 
-	@rm -rf hooks && mkdir -p hooks/bin && \
-		rm -rf env/gopath/src/github.com/postgres-ci/hooks
+	@rm -rf bin && mkdir -p bin && rm -rf env/gopath/src/github.com/postgres-ci/hooks && mkdir -p env/gopath/src/github.com/postgres-ci/hooks
 
-	@git clone -b master https://github.com/postgres-ci/hooks.git env/gopath/src/github.com/postgres-ci/hooks
-
-	@echo "\033[1mBuild post-commit hook\033[0m"
+	@cp -r ./git env/gopath/src/github.com/postgres-ci/hooks/
 
 	@GOROOT=$(shell pwd)/env/go \
 	GOPATH=$(shell pwd)/env/gopath \
-	env/go/bin/go build -ldflags='-s -w' -o hooks/bin/post-commit \
-		env/gopath/src/github.com/postgres-ci/hooks/local/bin/post-commit.go
+	CGO_ENABLED=0 \
+	env/go/bin/go build -ldflags='-s -w' -o bin/postgres-ci-git-hook postgres-ci-git-hook.go
 
-	@echo "\033[1mBuild post-receive hook\033[0m"
+	@echo "\033[1mdone!\033[0m"
 
-	@GOROOT=$(shell pwd)/env/go \
-	GOPATH=$(shell pwd)/env/gopath \
-	env/go/bin/go build -ldflags='-s -w' -o hooks/bin/post-receive \
-		env/gopath/src/github.com/postgres-ci/hooks/server-side/bin/post-receive.go
+install: build
 
-	@cp env/gopath/src/github.com/postgres-ci/hooks/local/post-commit.sample hooks
-	@cp env/gopath/src/github.com/postgres-ci/hooks/server-side/post-receive.sample hooks
+	cp bin/postgres-ci-git-hook /usr/bin/postgres-ci-git-hook
 
-	@echo "\033[1mBuild hooks: done!\033[0m"
-
-
-all: go build-hooks
+all: go build install

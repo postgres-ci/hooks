@@ -1,0 +1,7 @@
+#!/bin/bash
+
+export HOST=https://postgres-ci.com
+export TOKEN=587e6d7b-a023-4cab-b982-8169557e9e0c
+export EVENT=post-commit
+
+/usr/bin/postgres-ci-git-hook
