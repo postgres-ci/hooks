@@ -29,23 +29,31 @@ Example:
 
     Server-side hook:
 
-        Set environment variables to post-receive hook file (.git/hooks/post-receive) 
+        Add to post-receive hook file (.git/hooks/post-receive)
 
-        export HOST=https://postgres-ci.com
-        export TOKEN=587e6d7b-a023-4cab-b982-8169557e9e0c
-        export EVENT=post-receive
+            #!/bin/bash
 
-        /usr/bin/postgres-ci-git-hook
+            export HOST=https://postgres-ci.com
+            export TOKEN=587e6d7b-a023-4cab-b982-8169557e9e0c
+            export EVENT=post-receive
+
+            /usr/bin/postgres-ci-git-hook
+
+        and make it executable (chmod +x)
 
     Local hook:
 
-        Set environment variables to post-receive hook file (.git/hooks/post-commit) 
+        Add to post-commit hook file (.git/hooks/post-commit)
+        
+            #!/bin/bash
 
-        export HOST=https://postgres-ci.com
-        export TOKEN=587e6d7b-a023-4cab-b982-8169557e9e0c
-        export EVENT=post-commit
+            export HOST=http://postgres-ci.local
+            export TOKEN=587e6d7b-a023-4cab-b982-8169557e9e0c
+            export EVENT=post-commit
 
-        /usr/bin/postgres-ci-git-hook
+            /usr/bin/postgres-ci-git-hook
+
+        and make it executable (chmod +x)
 `
 
 var (

@@ -32,6 +32,6 @@ build:
 
 install: build
 
-	cp bin/postgres-ci-git-hook /usr/bin/postgres-ci-git-hook
+	sudo cp bin/postgres-ci-git-hook /usr/bin/postgres-ci-git-hook
 
 all: go build install
